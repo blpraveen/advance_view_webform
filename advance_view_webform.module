@@ -1,0 +1,483 @@
+<?php
+
+
+
+// include the field element
+module_load_include('inc', 'advance_view_webform', 'includes/advance_view_webform.field');
+
+/**
+ * Implements hook_menu().
+ */
+function  advance_view_webform_menu() {
+  $items = array();
+  $items['admin/content/webform/default'] = array(
+    'title' => 'Default',
+    'page arguments' => array(1),
+    'access callback' => 'user_access',
+    'access arguments' => array('access all webform results'),
+    'page callback' => 'advance_view_webform_admin_content',
+    'weight' => 0,
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+  );
+  $items['webforms_group_tree_ajax'] = array(
+    'page callback'     => 'webforms_group_tree_ajax',
+    'delivery callback' => 'ajax_deliver',
+    'access arguments'  => array('access content'),
+    'theme callback'    => 'ajax_base_page_theme',
+    'type'              => MENU_CALLBACK,
+    'file' =>  'includes/advance_view_webform.field.inc', 
+  );
+  /*$items['admin/content/webform/advanced'] = array(
+    'title' => 'Advanced',
+    'page arguments' => array(1),
+    'access callback' => 'user_access',
+    'access arguments' => array('access all webform results'),
+    'type' => MENU_LOCAL_TASK, 
+    'file' =>  'includes/advance_view_webform.admin.inc', 
+    'weight' => 1,
+    'page callback' => 'advance_view_webform_admin_advance_content',
+  );*/
+  $items['admin/content/webform/advanced'] = array(
+    'title' => 'Advanced',
+    'page callback' => 'advance_view_webform_admin_advance_view_group',
+    'page arguments' => array(5),
+    'access callback' => 'user_access',
+    'access arguments' => array('access all webform results'),
+    'type' => MENU_LOCAL_TASK, 
+    'file' =>  'includes/advance_view_webform.admin.inc', 
+    'weight' => 1,
+  );
+  $items['admin/content/webform/advanced/group'] = array(
+    'title' => 'Advanced',
+    'page callback' => 'advance_view_webform_admin_advance_view_group',
+    'page arguments' => array(NULL),
+    'access callback' => 'user_access',
+    'access arguments' => array('access all webform results'),
+    'type' => MENU_LOCAL_TASK, 
+    'file' =>  'includes/advance_view_webform.admin.inc', 
+    'weight' => 1,
+  );
+  $items['admin/content/webform/advanced/group/%'] = array(
+    'title' => 'Advanced',
+    'page callback' => 'advance_view_webform_admin_advance_view_group',
+    'page arguments' => array(5),
+    'access callback' => 'user_access',
+    'access arguments' => array('access all webform results'),
+    'type' => MENU_LOCAL_TASK, 
+    'file' =>  'includes/advance_view_webform.admin.inc', 
+    'weight' => 1,
+  );
+  $items['admin/content/webform/advanced/group/shared'] = array(
+    'title' => 'Advanced',
+    'page callback' => 'advance_view_webform_admin_advance_view_group_shared',
+    'page arguments' => array(NULL),
+    'access callback' => 'user_access',
+    'access arguments' => array('access all webform results'),
+    'type' => MENU_LOCAL_TASK, 
+    'file' =>  'includes/advance_view_webform.admin.inc', 
+    'weight' => 1,
+  );
+  $items['admin/content/webform/advanced/group/shared/%'] = array(
+    'title' => 'Advanced',
+    'page callback' => 'advance_view_webform_admin_advance_view_group_shared',
+    'page arguments' => array(6),
+    'access callback' => 'user_access',
+    'access arguments' => array('access all webform results'),
+    'type' => MENU_LOCAL_TASK, 
+    'file' =>  'includes/advance_view_webform.admin.inc', 
+    'weight' => 1,
+  );
+ $items['admin/content/webform/advanced/group/edit/%'] = array(
+    'title' => 'Edit page',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('advance_webform_add_group_form', 6),
+    'access callback' =>  true,
+    'type' => MENU_CALLBACK,
+    'file' =>  'includes/advance_view_webform.admin.inc', 
+  );
+  /*$items['admin/content/webform/%ctools_js/edit/%/'] = array(
+     'page callback' => 'advance_webform_group_edit',
+     'page arguments' => array(2),
+     'access callback' => 'advance_webform_group_access',
+     //'access arguments' => array(2,'edit own webform group'),
+     'type' => MENU_CALLBACK,
+     'file' =>  'includes/advance_view_webform.admin.inc', 
+  );*/
+  $items['advance/webform/add'] = array(
+     'Title' => 'Add Groups',
+     'page callback' => 'advance_webform_group_get_ajax',
+     'delivery callback' => 'advance_webform_group_add',
+     'page arguments' => array(1),
+     'access callback' =>  true,
+     //'access callback' => 'advance_webform_group_access',
+     //'access arguments' => array(,'add own webform group'),
+     'type' => MENU_CALLBACK,
+     'file' =>  'includes/advance_view_webform.admin.inc', 
+  );
+
+ return $items;
+}
+
+/**
+ * Implements hook_forms().
+ */
+function advance_view_webform_forms($form_id, $args) {
+  switch ($form_id) {
+    case 'advance_view_webform_admin_advance_view_group':
+      return array('advance_view_webform_admin_advance_view_group' => array('callback' => 'advance_webform_add_group_form'));
+      break;
+  }
+}
+function advance_webform_group_get_ajax() {
+	return ;
+}
+/**
+ * Implements hook_menu_alter().
+ */
+
+function advance_view_webform_menu_alter(&$items) {
+  $items['admin/content/webform']['type']  = MENU_LOCAL_TASK;
+  $items['admin/content/webform']['context']  =  MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE;
+}
+
+
+/**
+ * Implements hook_theme().
+ */
+function advance_view_webform_theme($existing, $type, $theme, $path) {
+$theme = array(
+    'advance_webform_view' => array(
+      'variables' => array('nodes' => NULL,'is_shared' => NULL,'groupnodes' => NULL,'form' => NULL),
+      //'file' => 'includes/advance_view_webform.admin.inc',
+     'template' => 'advance-webform-view', 	
+      'path' => drupal_get_path('module', 'advance_view_webform').'/templates'
+    ),
+
+    'advance_view_webform_admin_advance_view_group_shared' => array(
+      //'render element' => 'form',
+      'variables' => array('group_id' => NULL),
+      'file' => 'includes/advance_view_webform.admin.inc',
+    ),
+    'advance_view_webform_admin_advance_view_group' => array(
+      //'render element' => 'form',
+      'variables' => array('group_id' => NULL),
+      'file' => 'includes/advance_view_webform.admin.inc',
+    ),
+    'advance_webform_group' => array(
+      'variables' => array('nodes' => NULL),
+      'file' => 'includes/advance_view_webform.admin.inc',
+    ),
+    'advance_webform_group_shared' => array(
+      'variables' => array('nodes' => NULL),
+      'file' => 'includes/advance_view_webform.admin.inc',
+    ),
+
+    'advance_webform_table' => array(
+      'variables' => array('nodes' => NULL),
+      'file' => 'includes/advance_view_webform.admin.inc',
+    ),
+    'advance_webform_sidebar' => array(
+      'template' => 'advance-webform-sidebar', 	
+      'variables' => array('name' => NULL),
+      'path' => drupal_get_path('module', 'advance_view_webform').'/templates'
+    ),
+    'advance_webform_sidebar_right' => array(
+      'template' => 'advance-webform-sidebar-right', 	
+      'variables' => array('name' => NULL),
+      'path' => drupal_get_path('module', 'advance_view_webform').'/templates'
+    ),
+    'webform_tree_dropdown_select' => array(
+      'file'      => 'templates/webform_dropdown.inc',
+      'render element' => 'element',
+    ),
+    'webform_tree_dropdown_select_selects_container' => array(
+      'file'      => 'templates/webform_dropdown.inc',
+      'render element' => 'element',
+    ),
+    'webforms_group_tree_list' => array(
+      'variables' => array('items' => NULL),
+      'template' => 'webforms-group-tree-list', 	
+      'path' => drupal_get_path('module', 'advance_view_webform').'/templates'
+    ),
+
+ );
+ return $theme;
+}
+
+
+/**
+ * Menu access callback. Ensure a user both access and node 'view' permission.
+ */
+function advance_webform_group_access($group, $access = NULL, $account = NULL) {
+  global $user;
+  $account = isset($account) ? $account : $user;
+  $access =  isset($access) ?  $access :'access all group webforms';	
+  $module_access = count(array_filter(module_invoke_all('advance_webform_group_access', $group,$access,$account))) > 0;
+  $admin_access = 'access all group webforms';
+  if( $access == 'edit own webform group') {
+	$admin_access = 'edit all group webforms';
+  }
+  if( $access == 'delete own webform group') {
+	$admin_access = 'delete all group webforms';
+  } 
+  return ($module_access || user_access($admin_access, $account) || (user_access('access own webform group', $account)));
+}
+
+function advance_webform_group_clear_access($group, $access = NULL,  $account = NULL) {
+  global $user;
+  $account = isset($account) ? $account : $user;
+  $access =  isset($access) ?  $access : 'access all group webforms';
+  $module_access = count(array_filter(module_invoke_all('webform_results_clear_access', $group, $account))) > 0;
+
+  return advance_webform_group_access($group,$access , $account) && ($module_access || user_access('delete all webform group', $account));
+}
+
+/**
+ * Implements hook_perm().
+ */
+function advance_view_webform_permission() {
+  return array(
+    'access all group webforms' => array(
+      'title' => t('Access all webform group'),
+      'description' => t('Allows access to any webform group by any user. Generally an administrative permission.'),
+    ),
+    'edit all group webforms' => array(
+      'title' => t('Edit all webform group'),
+      'description' => t('Allows editing of any webform group by any user. Generally an administrative permission.'),
+    ),
+    'delete all group webforms' => array(
+      'title' => t('Delete all webform group'),
+      'description' => t('Allows deleting of any webform group by any user. Generally an administrative permission.'),
+    ),
+    'access own webform group' => array(
+      'title' => t('Access own webform group'),
+    ),
+    'edit own webform group' => array(
+      'title' => t('Edit own webform group'),
+    ),
+    'delete own webform group' => array(
+      'title' => t('Delete own webform group'),
+    ),
+  );
+}
+
+
+function advance_view_module_get_group($groupid) {
+
+	  // Fetch page from db
+	  $group = db_query("SELECT * FROM {advance_webform_group} WHERE gid = :id", array(':id' => $groupid))->fetchObject();
+
+	  if (is_object($group)) {
+	    return $group;
+	  }
+
+	  return  FALSE;
+}
+
+
+function advance_view_module_save_group($group, $gpid = 0) {
+  global $user;
+  if ($group->name &&  $group->uid) {
+    if($gpid) {
+	$currentgroup =  advance_view_module_get_group($gpid);
+	if($currentgroup) {
+		$result = db_query("UPDATE {advance_webform_group} SET name = :name WHERE  gid = :id and uid = :uid", array(':name' => $group->name,':id' => $gpid,':uid' => $user->uid));
+
+	}	  		
+    } else {
+	    if (!drupal_write_record('advance_webform_group', $group)) {
+	      return FALSE;
+	    }
+   }
+  }
+  else {
+    return FALSE;
+  }
+
+  return TRUE;
+}
+
+
+
+/**
+ *
+ * @return
+ *   An array of page objects
+ */
+function advance_view_module_groups() {
+  $groups = array();
+
+  // Fetch all available groups from database
+  $result = db_query("SELECT * FROM {advance_webform_group}");
+
+  foreach ($result as $group) {
+    $groups[] = $group;
+  }
+
+  return empty($groups) ? NULL : $groups;
+}
+
+function advance_view_module_sub_groups($parentid,$ids=false) {
+	$result = db_query("SELECT * FROM {advance_webform_group} WHERE pid = :pid",array(':pid'=> $parentid));
+
+	foreach ($result as $group) {
+	    if($ids) {
+		$groups[] = $group->gid;
+	    } else {
+	    	$groups[] = $group;
+	    }
+	}
+	return empty($groups) ? NULL : $groups;
+}
+
+
+function check_group_as_child($groupid) {
+
+	$group = db_query("SELECT * FROM {advance_webform_group} WHERE pid = :id", array(':id' => $groupid))->fetchObject();
+
+	if (is_object($group)) {
+	    return true;
+        }
+
+ 	return false;
+}
+function check_group_access($gid,$uid){
+	$uid = db_query("SELECT uid FROM {advance_webform_group_access} WHERE gid = :gid && uid = :uid;", array(':gid' => $gid, ':uid' => $uid))->fetchField();
+	if(!$uid) return false;
+	return true;
+}
+function advance_view_module_save_group_access($groupaccess,$recursive=false) {
+
+  if($recursive) {
+	$query = db_insert('advance_webform_group_access')->fields(array('gid','uid'));
+
+	foreach ($groupaccess as $group) {
+	  if($group->gid > 0 && $group->uid > 0 && !check_group_access($group->gid,$group->uid)) {
+		  $query->values(array('gid' => $group->gid,'uid' => $group->uid));
+	  }
+	}
+	$query->execute();	
+  } else if ($groupaccess->uid &&  $groupaccess->gid && !check_group_access($groupaccess->gid,$groupaccess->uid)) {
+    if (!drupal_write_record('advance_webform_group_access', $groupaccess)) {
+      return FALSE;
+    }
+
+  }
+}
+
+function advance_view_module_remove_group_access($uids) {
+  if (count($uids)) {
+	  if (!db_delete('advance_webform_group_access')->condition('uid', $uids, 'IN')->execute()) {
+		return false;
+	  }
+
+  }
+}
+
+function advance_view_module_get_group_access_users($grpid) {
+   $users = array(); 
+   if($grpid > 0) {
+	   $result = db_query("SELECT u.uid, u.name FROM {users} u LEFT JOIN {advance_webform_group_access} gu ON gu.uid = u.uid WHERE gid = :group_id", array(
+	      'group_id' => $grpid));
+
+	   foreach ($result as $user) {
+	      $users[$user->uid] = $user->name;
+	    }
+	   return $users;
+   }
+}
+
+function advance_view_module_shared_groups($grid) {
+	 global $user;
+	 $result = array();  	
+	 if($grid > 0 ) {
+	     $subgrps = advance_view_module_sub_groups($grid,true);
+	     if($subgrps && is_array($subgrps)) {
+		     $result = db_query("SELECT g.gid, g.name,g.pid,g.uid FROM {advance_webform_group_access} ga LEFT JOIN {advance_webform_group} g ON  ga.gid = g.gid WHERE ga.uid = :user_id && ga.gid 
+			       IN (:gids)", array(':user_id' => $user->uid, ':gids' => $subgrps));	
+	    }
+	    foreach ($result as $group) {
+		    $groups[] = $group;
+	    }
+	} else {
+		//TOD need to test more
+	   	$result = db_query("SELECT g.gid, g.name,g.pid,g.uid FROM {advance_webform_group_access} ga LEFT JOIN {advance_webform_group} g ON  ga.gid = g.gid WHERE ga.uid = :user_id", array(
+	      ':user_id' => $user->uid));
+		    $groups = array();
+		    $group_keys = array();
+		    $all_groups = array();
+		    foreach ($result as $group) {
+			    $all_groups[$group->gid] = $group;
+			    if(!$group->pid) {
+				$groups[] = $group;
+			    } else {
+			    	$group_keys[$id] = $group->pid;
+			    }
+		    }
+		     if(count($group_keys)) {
+		     	$parents = array_values($group_keys);
+			foreach($group_keys as $key => $group) {		
+				if(!in_array($group, $parents)){
+					$groups[] = $all_groups[$group->gid];
+				}
+			}
+		     }
+
+	}
+	 return  empty($groups) ? NULL : $groups;
+}
+
+
+function advance_view_webform_webform_node_defaults_alter(&$defaults) {
+	$defaults['advance_group_id'] =  0;
+}
+
+
+/**
+ * Implements hook_field_update().
+ *
+ * @todo handle new revisions
+ */
+function advance_view_webform_field_update($entity_type, $entity, $field, $instance, $langcode, &$items) {
+  // The derived files are handled first, because when the original file is deleted first,
+  // the derived files can not be looked up anymore.
+
+  // Modification of file_field_update().
+  // That function can't be called because the logic for finding
+  // existing fids is not the same.
+  list($id, $wid, $bundle) = entity_extract_ids($entity_type, $entity);
+  $original = entity_create_stub_entity($entity_type, array($id, $wid, $bundle));
+  field_attach_load($entity_type, array($id => $original), FIELD_LOAD_CURRENT, array('field_id' => $field['id']));
+ 
+  //file_field_update($entity_type, $entity, $field, $instance, $langcode, $items);
+}
+
+
+function advance_view_webform_node_update($node) {
+  if (!in_array($node->type, webform_variable_get('webform_node_types'))) {
+    return;
+  }
+  $page_fields = field_info_instances('node', $node->type);
+  foreach($page_fields as $key => $field) {
+	if($field['widget']['type'] == 'webform_group_widget') {
+		$node->webform['advance_group_id'] = $node->{$key}[$node->language][0];
+		//drupal_write_record('webform', $node->webform, array('nid'));
+		db_update('webform')->fields(array('advance_group_id' => $node->webform['advance_group_id']))->condition('nid', $node->nid)->execute();
+	} 
+  }
+}
+
+function advance_view_webform_node_insert($node) {
+
+  if (!in_array($node->type, webform_variable_get('webform_node_types'))) {
+    return;
+  }
+  $page_fields = field_info_instances('node', $node->type);	
+  foreach($page_fields as $key => $field) {
+	if($field['widget']['type'] == 'webform_group_widget') {
+		$node->webform['advance_group_id'] = $node->{$key}[$node->language][0];
+		//drupal_write_record('webform', $node->webform, array('nid'));
+		db_update('webform')->fields(array('advance_group_id' => $node->webform['advance_group_id']))->condition('nid', $node->nid)->execute();
+	} 
+  }
+}
