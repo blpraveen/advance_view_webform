@@ -1,0 +1,109 @@
+<?php
+
+
+function advance_view_webform_install() {
+
+}
+
+function advance_view_webform_uninstall() {
+
+}
+
+/**
+ * Implements hook_schema().
+ */
+function advance_view_webform_schema() {
+  $schema = array();
+
+  $schema['advance_webform_group'] = array(
+    'description' => 'Table for storing webforms groups.',
+    'fields' => array(
+      'gid' => array(
+        'description' => 'The unique identifier for the group.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'uid' => array(
+        'description' => 'The id of the user that created the group.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'name' => array(
+        'description' => 'The label for this group.',
+        'type' => 'varchar',
+        'length' => 255,
+      ),
+      'pid' => array(
+        'description' => 'If this group has a parent fieldset, the gid of that group.',
+        'type' => 'int',
+        'size' => 'small',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'wieght' => array(
+        'description' => 'Set the weight of the group or order it appears',
+        'type' => 'int',
+        'size' => 'small',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'last_modified' => array(
+        'description' => 'The Unix timestamp when the group was created/changed.',
+        'type' => 'timestamp',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'primary key' => array('gid'),
+  );
+  $schema['advance_webform_group_access'] = array(
+    'description' => 'Table for storing webforms groups.',
+    'fields' => array(
+      'gid' => array(
+        'description' => 'The unique identifier for the group.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'uid' => array(
+        'description' => 'The id of the user that created the group.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'primary key' => array('gid','uid'),
+  );
+  return $schema;
+}
+
+
+
+/**
+ * Add columns for webform advance_group_id.
+ */
+function advance_view_webform_update_5100() {
+  if (!db_field_exists('webform', 'advance_group_id')) {
+    db_add_field('webform', 'advance_group_id', array('type' => 'int',  'unsigned' => TRUE, 'default' => 0, 'not null' => TRUE));
+  }
+}
+
+
+function advance_view_webform_field_schema($field) {
+	return array(
+		'columns' => array(
+			'input_select' => array(
+				'type' => 'varchar',
+				'length' => 12,
+				'not null' => TRUE,
+      				'default' => 0,
+			),
+		),
+	);
+}
